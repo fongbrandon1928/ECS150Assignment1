@@ -64,8 +64,6 @@ int main(void){
                         } else {
                                 perror("getcwd");  // error
                         }
-                        break;
-
                 }
                 else {
                         __pid_t pid;
