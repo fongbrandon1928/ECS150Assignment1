@@ -48,7 +48,6 @@ int main(void){
                         else {
                                 fprintf(stderr, "No path specified for cd\n");
                         }
-                        break;
                 }
                 
 
