@@ -66,10 +66,12 @@ int main(void){
                         } else {
                                 perror("getcwd");  // error
                         }
+                        break;
 
                 }
                 else {
                         childrenCalled(cmdStr);
+                        break;
                 }
 
 
