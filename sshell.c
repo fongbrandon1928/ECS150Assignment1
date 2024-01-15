@@ -64,7 +64,7 @@ int main(void){
                         if (getcwd(cwd, sizeof(cwd)) != NULL) {
                                 printf("%s\n", cwd);  // print dic
                         } else {
-                                perror("getcwd");  // 错误处理
+                                perror("getcwd");  // error
                         }
 
                 }
