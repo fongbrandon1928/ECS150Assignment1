@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "children.h"
 
 #define CMDLINE_MAX 512
 
