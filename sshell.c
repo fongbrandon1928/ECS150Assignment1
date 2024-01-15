@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "children.h"
 
-
-
 #define CMDLINE_MAX 512
 
 int main(void){
@@ -70,12 +68,24 @@ int main(void){
 
                 }
                 else {
-                        childrenCalled(cmdStr);
-                        break;
+                        __pid_t pid;
+                        pid = fork();
+                        if (pid == 0) {
+                                execvp(cmdStr[0], cmdStr);
+                                perror("execvp");
+                                exit(EXIT_FAILURE);
+                        }
+                        else if (pid > 0) {
+                                int status;
+                                waitpid(pid, &status, 0);
+                                printf("%s complete\n", cmdStr[0]);
+                                WEXITSTATUS(status);
+                        }
+                        else {
+                                perror("fork");
+                                exit(1);
+                        }
                 }
-
-
         }
-
         return EXIT_SUCCESS;
 }
