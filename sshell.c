@@ -147,6 +147,7 @@ int main(void){
 
                                         /* creating pipes*/
                                         for (int i = 0; i < pipe_cmds_count - 1; i++) {
+                                                /*pipe every two files*/
                                                 if (pipe(fd + i*2) < 0) {
                                                         perror("pipe");
                                                         exit(EXIT_FAILURE);
