@@ -72,7 +72,7 @@ int main(void){
                         /* split with '|' first*/
                         split_command(cmd, cmdStr, split_indicator_pipe, &cmdNum);
                         /* record how many pipe we need to use*/
-                        pipe_cmds_count = cmdNum-1;
+                        pipe_cmds_count = cmdNum;
                         /* split each string list in pipe_cmds with space and put it in pipe_cmds_str*/
                         for (int i = 0; i < pipe_cmds_count; i++) {
                                 pipe_cmds[i] = cmdStr[i];
