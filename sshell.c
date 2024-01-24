@@ -71,7 +71,7 @@ int main(void){
                         pipe_start = 1;
                         /* split with '|' first*/
                         split_command(cmd, cmdStr, split_indicator_pipe, &cmdNum);
-                        /* record how many pipe we need to use*/
+                        /* record how many commands piping*/
                         pipe_cmds_count = cmdNum;
                         /* split each string list in pipe_cmds with space and put it in pipe_cmds_str*/
                         for (int i = 0; i < pipe_cmds_count; i++) {
