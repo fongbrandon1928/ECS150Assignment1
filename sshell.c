@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define CMDLINE_MAX 512
 #define ARG_MAX 64
@@ -28,6 +29,7 @@ void split_command(char *command, char *commandStr[ARG_MAX], char *split_indicat
 int main(void)
 {
     char cmd[CMDLINE_MAX];
+    char statusList[4];
 
     while (1)
     {
@@ -47,6 +49,7 @@ int main(void)
             fflush(stdout);
         }
 
+        char fullCmd[CMDLINE_MAX];
         int cmdNum = 0;
         char *cmdStr[ARG_MAX] = {NULL};
         int redirect = 0;
@@ -54,19 +57,42 @@ int main(void)
         char split_indicator[] = " \n";
         char split_indicator_pipe[] = "|";
         char *filename = NULL;
+        char *filename_with_newline = strchr(cmd, '>');
         char *pipe_cmds[ARG_MAX] = {NULL};
         char *pipe_cmds_str[ARG_MAX][ARG_MAX] = {0};
         int pipe_cmds_count = 0;
-        filename = strchr(cmd, '>');
+
+        strcpy(fullCmd, cmd);
+        fullCmd[strlen(fullCmd) - 1] = '\0';
+
+        /* Parse if empty filename */
+        if (filename_with_newline)
+        {
+            *filename_with_newline = '\0';
+            filename = filename_with_newline + 1;
+            filename = strtok(filename, "'$'\n");
+            if (filename && isspace((unsigned char)*filename) && strlen(filename) <= 1)
+            {
+                filename = NULL;
+            }
+        }
         pipe_cmds[0] = strchr(cmd, '|');
 
         /* check if it redirects to any other file first*/
         if (filename != NULL)
         {
-            redirect = 1;
-            /* split command in two part: cmd without redirection and filename*/
-            *filename = '\0';
-            filename++;
+            if (strchr(filename, '|'))
+            {
+                fprintf(stderr, "Error: mislocated output direction\n");
+                continue;
+            }
+            else
+            {
+                redirect = 1;
+                /* split command in two part: cmd without redirection and filename*/
+                *filename = '\0';
+                filename++;
+            }
         }
 
         if (pipe_cmds[0] != NULL)
@@ -86,6 +112,7 @@ int main(void)
                 else
                 {
                     fprintf(stderr, "Error: missing command\n");
+                    printf("test2\n");
                     continue;
                 }
             }
@@ -96,8 +123,9 @@ int main(void)
                 split_command(pipe_cmds[i], pipe_cmds_str[i], split_indicator, &cmdNum);
                 if (strlen(pipe_cmds[i]) == 1)
                 {
+                    printf("test1\n");
                     fprintf(stderr, "Error: missing command\n");
-                    exit(EXIT_FAILURE);
+                    continue;
                 }
             }
         }
@@ -116,6 +144,7 @@ int main(void)
             }
             else if (cmdNum == 0)
             {
+                printf("test3\n");
                 fprintf(stderr, "Error: missing command\n");
                 continue;
             }
@@ -140,12 +169,13 @@ int main(void)
             {
                 fprintf(stderr, "No path specified for cd\n");
             }
+            printf("+ completed '%s' [0]\n", fullCmd);
         }
 
         else if (!strcmp(cmdStr[0], "exit"))
         {
+            printf("+ completed 'exit' [0]\n");
             fprintf(stderr, "Bye...\n");
-            memset(cmd, 0, CMDLINE_MAX);
             break;
         }
         else if (!strcmp(cmdStr[0], "pwd"))
@@ -154,6 +184,7 @@ int main(void)
             if (getcwd(cwd, sizeof(cwd)) != NULL)
             {
                 printf("%s\n", cwd); // print dic
+                printf("+ completed 'pwd' [0]\n");
             }
             else
             {
@@ -170,22 +201,15 @@ int main(void)
                 /* redirect output*/
                 if (redirect && filename)
                 {
-                    if (strlen(filename) == 1)
+
+                    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (fd < 0)
                     {
-                        fprintf(stderr, "Error: no output file\n");
+                        fprintf(stderr, "Error: cannot open output file\n");
                         exit(EXIT_FAILURE);
                     }
-                    else
-                    {
-                        int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                        if (fd < 0)
-                        {
-                            fprintf(stderr, "Error: cannot open output file\n");
-                            exit(EXIT_FAILURE);
-                        }
-                        dup2(fd, STDOUT_FILENO);
-                        close(fd);
-                    }
+                    dup2(fd, STDOUT_FILENO);
+                    close(fd);
                 }
                 /*
                 outside website studied:
@@ -197,6 +221,7 @@ int main(void)
                 {
                     /* each pipe needs two files*/
                     int fd[2 * (pipe_cmds_count - 1)];
+                    pid_t pid[pipe_cmds_count];
 
                     /* creating pipes*/
                     for (int i = 0; i < pipe_cmds_count - 1; i++)
@@ -212,7 +237,8 @@ int main(void)
                     /* creating processes*/
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
-                        if (fork() == 0)
+                        pid[i] = fork();
+                        if (pid[i] == 0)
                         {
                             /* if it's not the first command, direct its STDIN to the Previous pipe write*/
                             if (i != 0)
@@ -245,10 +271,11 @@ int main(void)
                         close(fd[i]);
                     }
 
+                    int status;
                     /* wait all children*/
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
-                        wait(NULL);
+                        waitpid(pid[i], &status, 0);
                     }
                     exit(0);
                 }
@@ -263,13 +290,18 @@ int main(void)
             {
                 int status;
                 waitpid(pid, &status, 0);
-                if (WIFEXITED(status) && WEXITSTATUS(status) == 0)
+                if (pipe_cmds_count > 0)
                 {
-                    printf("+ complete '%s'\n", cmdStr[0]);
+                    printf("+ complete '%s' ", fullCmd);
+                    for (int i = 0; i < pipe_cmds_count; i++)
+                    {
+                        printf("[%d]", statusList[i]);
+                    }
+                    printf("\n");
                 }
-                else
+                else // Non-piped command
                 {
-                    fprintf(stderr, "child failed\n");
+                    printf("+ complete '%s' [%d]\n", fullCmd, WEXITSTATUS(status));
                 }
             }
             else
