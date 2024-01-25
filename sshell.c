@@ -250,6 +250,7 @@ int main(void)
                     {
                         wait(NULL);
                     }
+                    exit(0);
                 }
                 else
                 {
