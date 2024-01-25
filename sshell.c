@@ -3,8 +3,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <dirent.h>
 
 #define CMDLINE_MAX 512
 #define ARG_MAX 64
@@ -24,6 +26,26 @@ void split_command(char *command, char *commandStr[ARG_MAX], char *split_indicat
         token = strtok(NULL, split_indicator);
     }
     commandStr[*cmdNum] = NULL;
+}
+
+void sls(void) {
+	DIR *d;
+    struct dirent *dir;
+    struct stat file_stat;
+    d = opendir(".");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            // Get file statistics
+            stat(dir->d_name, &file_stat);
+            // Check if it is a regular file
+            if (S_ISREG(file_stat.st_mode)) {
+                printf("%s (%ld bytes)\n", dir->d_name, file_stat.st_size);
+            }
+        }
+        closedir(d);
+    } else {
+        perror("opendir");
+    }
 }
 
 int main(void)
@@ -171,7 +193,12 @@ int main(void)
             }
             printf("+ completed '%s' [0]\n", fullCmd);
         }
-
+		
+		else if (!strcmp(cmdStr[0], "sls")) {
+			sls();
+			printf("+ completed 'sls' [0]\n");
+		}
+		
         else if (!strcmp(cmdStr[0], "exit"))
         {
             printf("+ completed 'exit' [0]\n");
