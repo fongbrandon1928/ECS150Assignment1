@@ -83,6 +83,7 @@ int main(void)
         char *pipe_cmds[ARG_MAX] = {NULL};
         char *pipe_cmds_str[ARG_MAX][ARG_MAX] = {0};
         int pipe_cmds_count = 0;
+        int append = 0;
 
         strcpy(fullCmd, cmd);
         fullCmd[strlen(fullCmd) - 1] = '\0';
@@ -90,9 +91,19 @@ int main(void)
         /* Parse if empty filename */
         if (filename_with_newline)
         {
-            *filename_with_newline = '\0';
-            filename = filename_with_newline + 1;
-            filename = strtok(filename, "'$'\n");
+        	if (*(filename_with_newline + 1 ) == '>')
+        	{
+        		append = 1;
+        		*filename_with_newline = '\0';
+        		filename = filename_with_newline + 2;
+        		filename = strtok(filename, "'$'\n");
+        	}
+        	else 
+        	{
+            	*filename_with_newline = '\0';
+            	filename = filename_with_newline + 1;
+            	filename = strtok(filename, "'$'\n");
+            }
             if (filename && isspace((unsigned char)*filename) && strlen(filename) <= 1)
             {
                 filename = NULL;
@@ -228,8 +239,11 @@ int main(void)
                 /* redirect output*/
                 if (redirect && filename)
                 {
-
-                    int fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                	int fd;
+					if (append)
+                    	fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    else
+                    	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
                     if (fd < 0)
                     {
                         fprintf(stderr, "Error: cannot open output file\n");
