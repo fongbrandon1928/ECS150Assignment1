@@ -312,12 +312,23 @@ int main(void)
                         close(fd[i]);
                     }
 
-                    int status;
                     /* wait all children*/
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
+
+                        int status;
                         waitpid(pid[i], &status, 0);
+                        statusList[i] = WEXITSTATUS(status);
+
                     }
+
+                    printf("+ complete '%s' ", fullCmd);
+                    for (int i = 0; i < pipe_cmds_count; i++)
+                    {
+                        printf("[%d]", statusList[i]);
+                    }
+                    printf("\n");
+
                     exit(0);
                 }
                 else
@@ -331,16 +342,8 @@ int main(void)
             {
                 int status;
                 waitpid(pid, &status, 0);
-                if (pipe_cmds_count > 0)
-                {
-                    printf("+ complete '%s' ", fullCmd);
-                    for (int i = 0; i < pipe_cmds_count; i++)
-                    {
-                        printf("[%d]", statusList[i]);
-                    }
-                    printf("\n");
-                }
-                else // Non-piped command
+
+                if (pipe_cmds_count == 0) // Non-piped command
                 {
                     printf("+ complete '%s' [%d]\n", fullCmd, WEXITSTATUS(status));
                 }
