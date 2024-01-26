@@ -49,26 +49,28 @@ The directory is then closed at the end to free up space.
 This is the logic for how commands entered in the shell get processed.
 
 The function takes four parameters:
-### char *command: 
-A string that contains the command to be split.
+- char *command: A string that contains the command to be split.
 
-### char *commandStr[ARG_MAX]: 
-An array of strings (character pointers) where the split parts of the command 
-will be stored.
+- char *commandStr[ARG_MAX]: An array of strings (character pointers) where 
+the split parts of the command will be stored.
 
-### char *split_indicator: 
+- char *split_indicator: 
 A string that specifies the delimiter used for splitting the command.
 
-### int *cmdNum: 
-A pointer to an integer that will store the number of parts the command is 
-split into.
+- int *cmdNum: A pointer to an integer that will store the number of parts the 
+command is split into.
+
+The code uses strtok to split the cmd into multiple tokens where each token is
+the string between each "|" which is the indicator for piping. These commands
+are then stored into an array which will be referenced later in the code to
+be performed later.
 
 
 ## 6. Implementation
 The implementation of this program follows three distinct steps:
 ### 6.1 Parsing options
 ### 6.2 Pattern matching
-#### 6.2.1 pipe
+#### 6.2.1 Pipe
 An outside source was viewed and studied to learn how to control mutiple pipe 
 redirection. The `pipe_cmds_count` stores the number of piped commands from 
 cmdNum in `split_command(...,split_indicator_pipe, &cmdNum)`. From this, we 
