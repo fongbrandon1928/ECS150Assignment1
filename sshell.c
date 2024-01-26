@@ -335,7 +335,7 @@ int main(void)
                     }
                     printf("\n");
 
-                    exit(0);
+                    exit(EXIT_FAILURE);
                 }
                 else
                 {
