@@ -15,10 +15,10 @@ void split_command(char *command, char *commandStr[ARG_MAX], char *split_indicat
 {
     *cmdNum = 0;
 
-    // split cmd with space
+    /* Split command with space */
     char *token = strtok(command, split_indicator);
-    // cmdStr gets these commands in a char* list
-    // cmdNum gets the number of elements
+    /* cmdStr gets these commands in a char* list */
+    /* cmdNum gets the number of elements */
     while (token != NULL)
     {
         commandStr[*cmdNum] = token;
@@ -28,6 +28,7 @@ void split_command(char *command, char *commandStr[ARG_MAX], char *split_indicat
     commandStr[*cmdNum] = NULL;
 }
 
+/* Get files and their size in directory */
 void sls(void) {
 	DIR *d;
     struct dirent *dir;
@@ -35,9 +36,8 @@ void sls(void) {
     d = opendir(".");
     if (d) {
         while ((dir = readdir(d)) != NULL) {
-            // Get file statistics
             stat(dir->d_name, &file_stat);
-            // Check if it is a regular file
+            /* Check if it is a regular file */
             if (S_ISREG(file_stat.st_mode)) {
                 printf("%s (%ld bytes)\n", dir->d_name, file_stat.st_size);
             }
@@ -111,7 +111,7 @@ int main(void)
         }
         pipe_cmds[0] = strchr(cmd, '|');
 
-        /* check if it redirects to any other file first*/
+        /* Check for redirection to any other file first*/
         if (filename != NULL)
         {
             if (strchr(filename, '|'))
@@ -122,7 +122,7 @@ int main(void)
             else
             {
                 redirect = 1;
-                /* split command in two part: cmd without redirection and filename*/
+                /* Split command in two parts: cmd without redirection and filename */
                 *filename = '\0';
                 filename++;
             }
@@ -131,9 +131,9 @@ int main(void)
         if (pipe_cmds[0] != NULL)
         {
             pipe_start = 1;
-            /* split with '|' first*/
+            /* split with '|' first */
             split_command(cmd, cmdStr, split_indicator_pipe, &cmdNum);
-            /* record how many commands piping*/
+            /* Record how many commands piping */
             pipe_cmds_count = cmdNum;
             if (cmdNum <= 1)
             {
@@ -148,7 +148,7 @@ int main(void)
                     continue;
                 }
             }
-            /* split each string list in pipe_cmds with space and put it in pipe_cmds_str*/
+            /* Split each string list in pipe_cmds with space and put it in pipe_cmds_str */
             for (int i = 0; i < pipe_cmds_count; i++)
             {
                 pipe_cmds[i] = cmdStr[i];
@@ -162,11 +162,11 @@ int main(void)
         }
         else
         {
-            /* split with space*/
+            /* Split cmd with space */
             split_command(cmd, cmdStr, split_indicator, &cmdNum);
             if (cmdNum > ARG_MAX)
             {
-                /* check if ls/cd command has more than 1 argument */
+                /* Check if ls/cd command has more than ARG_MAX arguments */
                 if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "cd") == 0)
                 {
                     fprintf(stderr, "Error: too many process arguments\n");
@@ -186,6 +186,7 @@ int main(void)
             *nl = '\0';
 
         /* Builtin command */
+        /* cd */
         if (!strcmp(cmdStr[0], "cd"))
         {
             if (cmdStr[1] != NULL)
@@ -202,38 +203,41 @@ int main(void)
             fprintf(stderr, "+ completed '%s' [0]\n", fullCmd);
         }
 		
+        /* sls */
 		else if (!strcmp(cmdStr[0], "sls")) {
 			sls();
 			fprintf(stderr, "+ completed 'sls' [0]\n");
 		}
 		
+        /* exit */
         else if (!strcmp(cmdStr[0], "exit"))
         {
             fprintf(stderr, "Bye...\n");
             fprintf(stderr,"+ completed 'exit' [0]\n");
             break;
         }
+        /* pwd */
         else if (!strcmp(cmdStr[0], "pwd"))
         {
             char cwd[CMDLINE_MAX];
             if (getcwd(cwd, sizeof(cwd)) != NULL)
             {
-                fprintf(stdout, "%s\n", cwd); // print dic
+                fprintf(stdout, "%s\n", cwd);
                 fprintf(stderr, "+ completed 'pwd' [0]\n");
             }
             else
             {
-                perror("getcwd"); // error
+                perror("getcwd");
             }
         }
-        /* system command*/
+        /* System command */
         else
         {
             __pid_t pid;
             pid = fork();
             if (pid == 0)
             {
-                /* redirect output*/
+                /* Redirect output */
                 if (redirect && filename)
                 {
                 	int fd;
@@ -249,19 +253,19 @@ int main(void)
                     dup2(fd, STDOUT_FILENO);
                     close(fd);
                 }
-                /*
-                outside website studied:
+                
+                /* outside website studied:
                 knowing how to control pipe redirection
                 https://stackoverflow.com/questions/8389033/implementation-of-multiple-pipes-in-c
-                see report
-                */
+                see report */
+                
                 if (pipe_start)
                 {
-                    /* each pipe needs two files*/
+                    /* Each pipe needs two files */
                     int fd[2 * (pipe_cmds_count - 1)];
                     pid_t pid[pipe_cmds_count];
 
-                    /* creating pipes*/
+                    /* Creating pipes*/
                     for (int i = 0; i < pipe_cmds_count - 1; i++)
                     {
                         /*pipe every two files*/
@@ -278,38 +282,38 @@ int main(void)
                         pid[i] = fork();
                         if (pid[i] == 0)
                         {
-                            /* if it's not the first command, direct its STDIN to the Previous pipe write*/
+                            /* If not on first command, direct STDIN to the previous pipe write*/
                             if (i != 0)
                             {
                                 dup2(fd[(i - 1) * 2], STDIN_FILENO);
                             }
 
-                            /* if it's not the last command, direct its STDOUT to current pipe read*/
+                            /* If not on last command, direct STDOUT to current pipe read*/
                             if (i != pipe_cmds_count - 1)
                             {
                                 dup2(fd[i * 2 + 1], STDOUT_FILENO);
                             }
 
-                            /* close all the files*/
+                            /* Close all the files */
                             for (int j = 0; j < 2 * (pipe_cmds_count - 1); j++)
                             {
                                 close(fd[j]);
                             }
 
-                            /* execute commands*/
+                            /* Execute commands */
                             execvp(pipe_cmds_str[i][0], pipe_cmds_str[i]);
                             perror("execvp");
                             exit(EXIT_FAILURE);
                         }
                     }
 
-                    /* close all files in parent process*/
+                    /* Close all files in parent process */
                     for (int i = 0; i < 2 * (pipe_cmds_count - 1); i++)
                     {
                         close(fd[i]);
                     }
 
-                    /* wait all children*/
+                    /* Wait for all children */
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
 
@@ -319,6 +323,7 @@ int main(void)
 
                     }
 
+                    /* Print complete message if pipe */
                     fprintf(stderr, "+ completed '%s' ", fullCmd);
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
@@ -340,7 +345,8 @@ int main(void)
                 int status;
                 waitpid(pid, &status, 0);
 
-                if (pipe_cmds_count == 0) // Non-piped command
+                /* Print for single command */
+                if (pipe_cmds_count == 0)
                 {
                     fprintf(stderr, "+ completed '%s' [%d]\n", fullCmd, WEXITSTATUS(status));
                 }
