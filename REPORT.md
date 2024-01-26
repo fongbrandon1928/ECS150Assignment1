@@ -16,7 +16,7 @@ The implementation of this program follows three distinct steps:
 ### 2.1 Parsing options
 ### 2.2 Pattern matching
 #### 2.2.1 pipe
-__outside source__ is viewed and studied to learn how to control mutiple pipe redirection. 
+__outside source__ (3.1) is viewed and studied to learn how to control mutiple pipe redirection. 
 The `pipe_cmds_count` stores the number of piped commands from cmdNum in `split_command(...,split_indicator_pipe, &cmdNum)`. 
 From this, we need `pipe_cmds_count - 1` pipes, (for example command1 | command2, we just need `the number of commands - 1` pipes)
 for each pipe, we need two files to pipe them.
