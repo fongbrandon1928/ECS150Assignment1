@@ -98,10 +98,15 @@ After doing all of these, the pipe children are already to use `execvp` to
 execute their commands. And the last child will print it output to terminal. 
 If it fails it will still use `exit(EXIT_FAILURE)` to exit.
 
-### 6.3 Output and error
+
+## 7.3 Output and error
+Before submitting, a test script was put in the CSIF for groups to initially
+test their code. In many of the test cases, ours would fail due to the way the
+"complete" messages were outputted. To get the test cases to pass, all of our
+complete messages not involving a pipe were printed out in stderr.
 
 
-## 7. Cite outside source
-### 7.1 knowing how to control pipe redirection
+## 8. Cite outside source
+### 8.1 knowing how to control pipe redirection
 `https://stackoverflow.com/questions/8389033/implementation-of-multiple-pipes
 -in-c`
