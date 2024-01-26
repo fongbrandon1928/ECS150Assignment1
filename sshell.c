@@ -145,7 +145,6 @@ int main(void)
                 else
                 {
                     fprintf(stderr, "Error: missing command\n");
-                    printf("test2\n");
                     continue;
                 }
             }
@@ -156,7 +155,6 @@ int main(void)
                 split_command(pipe_cmds[i], pipe_cmds_str[i], split_indicator, &cmdNum);
                 if (strlen(pipe_cmds[i]) == 1)
                 {
-                    printf("test1\n");
                     fprintf(stderr, "Error: missing command\n");
                     continue;
                 }
@@ -166,7 +164,7 @@ int main(void)
         {
             /* split with space*/
             split_command(cmd, cmdStr, split_indicator, &cmdNum);
-            if (cmdNum > 2)
+            if (cmdNum > ARG_MAX)
             {
                 /* check if ls/cd command has more than 1 argument */
                 if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "cd") == 0)
@@ -177,7 +175,6 @@ int main(void)
             }
             else if (cmdNum == 0)
             {
-                printf("test3\n");
                 fprintf(stderr, "Error: missing command\n");
                 continue;
             }
@@ -195,25 +192,25 @@ int main(void)
             {
                 if (chdir(cmdStr[1]) != 0)
                 {
-                    fprintf(stderr, "Error: cannot cd into directory\n");
+                    fprintf(stdout, "Error: cannot cd into directory\n");
                 }
             }
             else
             {
                 fprintf(stderr, "No path specified for cd\n");
             }
-            printf("+ completed '%s' [0]\n", fullCmd);
+            fprintf(stderr, "+ completed '%s' [0]\n", fullCmd);
         }
 		
 		else if (!strcmp(cmdStr[0], "sls")) {
 			sls();
-			printf("+ completed 'sls' [0]\n");
+			fprintf(stderr, "+ completed 'sls' [0]\n");
 		}
 		
         else if (!strcmp(cmdStr[0], "exit"))
         {
-            printf("+ completed 'exit' [0]\n");
             fprintf(stderr, "Bye...\n");
+            fprintf(stderr,"+ completed 'exit' [0]\n");
             break;
         }
         else if (!strcmp(cmdStr[0], "pwd"))
@@ -221,8 +218,8 @@ int main(void)
             char cwd[CMDLINE_MAX];
             if (getcwd(cwd, sizeof(cwd)) != NULL)
             {
-                printf("%s\n", cwd); // print dic
-                printf("+ completed 'pwd' [0]\n");
+                fprintf(stdout, "%s\n", cwd); // print dic
+                fprintf(stderr, "+ completed 'pwd' [0]\n");
             }
             else
             {
@@ -322,7 +319,7 @@ int main(void)
 
                     }
 
-                    printf("+ complete '%s' ", fullCmd);
+                    fprintf(stderr, "+ completed '%s' ", fullCmd);
                     for (int i = 0; i < pipe_cmds_count; i++)
                     {
                         printf("[%d]", statusList[i]);
@@ -345,7 +342,7 @@ int main(void)
 
                 if (pipe_cmds_count == 0) // Non-piped command
                 {
-                    printf("+ complete '%s' [%d]\n", fullCmd, WEXITSTATUS(status));
+                    fprintf(stderr, "+ completed '%s' [%d]\n", fullCmd, WEXITSTATUS(status));
                 }
             }
             else
