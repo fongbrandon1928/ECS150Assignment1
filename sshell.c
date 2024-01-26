@@ -44,7 +44,7 @@ void sls(void) {
         }
         closedir(d);
     } else {
-        perror("opendir");
+        fprintf(stderr, "Error: cannot open directory");
     }
 }
 
