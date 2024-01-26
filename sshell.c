@@ -305,6 +305,10 @@ int main(void)
                             perror("execvp");
                             exit(EXIT_FAILURE);
                         }
+                        else if (pid[i] < 0) {
+                            perror("fork");
+                            exit(1);
+                        }
                     }
 
                     /* Close all files in parent process */
