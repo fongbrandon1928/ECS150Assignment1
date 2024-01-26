@@ -20,7 +20,7 @@ __outside source__ is viewed and studied to learn how to control mutiple pipe re
 The `pipe_cmds_count` stores the number of piped commands from cmdNum in `split_command(...,split_indicator_pipe, &cmdNum)`. 
 From this, we need `pipe_cmds_count - 1` pipes, (for example command1 | command2, we just need `the number of commands - 1` pipes)
 for each pipe, we need two files to pipe them.
-`pipe[fd + i * 2]` piped every two files, `fd[2i]->pipe write end`, `fd[2i+1]->pipe read end`
+`pipe[fd + i * 2]` piped every two files, `fd[2i]->pipe read end`, `fd[2i+1]->pipe write end`
 Then, step into creating processes using loop and fork and linking each pipe child to correct input and output.
 ```c
 if  (i  !=  0){
