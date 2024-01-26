@@ -33,8 +33,9 @@ if  (i  !=  pipe_cmds_count  -  1){
 dup2(fd[i  *  2  +  1],  STDOUT_FILENO);
 }
 ```
-![](image.png)
 if it's not the last command, direct its STDOUT to current pipe read.  
+![](image.png)
+
 After doing all of these, the pipe children are already to use `execvp` to execute their commands. And the last child will print it output to terminal. If it fails it will still use `exit(EXIT_FAILURE)` to exit.
 
 ### 2.3 Output and error
