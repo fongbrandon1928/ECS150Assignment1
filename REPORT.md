@@ -66,12 +66,8 @@ are then stored into an array which will be referenced later in the code to
 be performed later.
 
 
-## 6. Implementation
-The implementation of this program follows three distinct steps:
-### 6.1 Parsing options
-### 6.2 Pattern matching
-#### 6.2.1 Pipe
-An outside source was viewed and studied to learn how to control mutiple pipe 
+## 6. Pipe
+__An outside source__(8.1) was viewed and studied to learn how to control mutiple pipe 
 redirection. The `pipe_cmds_count` stores the number of piped commands from 
 cmdNum in `split_command(...,split_indicator_pipe, &cmdNum)`. From this, we 
 need `pipe_cmds_count - 1` pipes, (for example command1 | command2, we just 
