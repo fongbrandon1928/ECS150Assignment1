@@ -307,7 +307,7 @@ int main(void)
                         }
                         else if (pid[i] < 0) {
                             perror("fork");
-                            exit(1);
+                            exit(EXIT_FAILURE);
                         }
                     }
 
@@ -358,7 +358,7 @@ int main(void)
             else
             {
                 perror("fork");
-                exit(1);
+                exit(EXIT_FAILURE);
             }
         }
     }
